@@ -1,0 +1,21 @@
+name: Test Discord Failure
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Fake error
+        run: exit 1
+
+      - name: Run local Discord Failure Notifier
+        if: failure()
+        uses: ./
+        with:
+          webhook-url: ${{ secrets.WEBHOOK_URL }}

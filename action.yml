@@ -1,0 +1,39 @@
+name: "Discord Failure Notifier"
+description: "Send a Discord webhook message when a workflow job fails"
+author: "Jaded-Encoding-Thaumaturgy"
+
+inputs:
+  webhook-url:
+    description: "Discord webhook URL"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Get context
+      uses: qoomon/actions--context@v5
+      id: context
+
+    - uses: actions/github-script@v7
+      id: date
+      with:
+        script: |
+          const date = new Date().toISOString();
+          core.setOutput("date", date);
+
+    - name: Post webhook for failure
+      if: github.event.pull_request.head.repo.owner.login == github.event.pull_request.base.repo.owner.login
+      uses: tsickert/discord-webhook@v7.0.0
+      with:
+        webhook-url: ${{ inputs.webhook-url }}
+        avatar-url: https://github.githubassets.com/favicons/favicon.png
+        username: Github
+        embed-color: 0xff0000
+        embed-author-name: "${{ github.repository }}"
+        embed-author-url: ${{ github.server_url }}/${{ github.repository }}
+        embed-author-icon-url: https://em-content.zobj.net/source/twitter/408/face-with-tears-of-joy_1f602.png
+        embed-title: >
+          ${{ steps.context.outputs.job_name }} failed on ${{ github.head_ref || github.ref_name }} branch
+        embed-url: ${{ steps.context.outputs.job_html_url }}
+        embed-description: "**Workflow**: ${{ github.action }}"
+        embed-timestamp: ${{ steps.date.outputs.date }}"
