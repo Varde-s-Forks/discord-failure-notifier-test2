@@ -1,0 +1,44 @@
+name: "Discord Failure Notifier"
+description: "Send a Discord webhook message when a workflow job fails"
+author: "Jaded-Encoding-Thaumaturgy"
+
+inputs:
+  webhook-url:
+    description: "Discord webhook URL"
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Get job context
+      id: context
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const run_id = context.runId;
+          const jobs = await github.rest.actions.listJobsForWorkflowRun({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            run_id,
+          });
+
+          const currentJobName = process.env.GITHUB_JOB;
+          const currentJob = jobs.data.jobs.find(j => j.name === currentJobName);
+
+          core.setOutput("job_html_url", currentJob?.html_url);
+
+    - name: Post webhook for failure
+      if: github.event.pull_request.head.repo.owner.login == github.event.pull_request.base.repo.owner.login
+      uses: tsickert/discord-webhook@v7.0.0
+      with:
+        webhook-url: ${{ inputs.webhook-url }}
+        avatar-url: https://github.githubassets.com/favicons/favicon.png
+        username: Github
+        embed-color: 0xff0000
+        embed-author-name: "[${{ github.repository }}]"
+        embed-author-url: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.head_ref || github.ref_name }}
+        embed-author-icon-url: https://em-content.zobj.net/source/twitter/408/face-with-tears-of-joy_1f602.png
+        embed-title: ${{ github.job }} failed on ${{ github.head_ref || github.ref_name }} branch
+        embed-url: ${{ steps.context.outputs.job_html_url }}
+        embed-description: "**Workflow**: ${{ github.workflow }}"
+        embed-timestamp: ${{ github.event.head_commit.timestamp || github.run_started_at }}
