@@ -10,10 +10,6 @@ inputs:
 runs:
   using: composite
   steps:
-    # - name: Get context
-    #   uses: qoomon/actions--context@v5
-    #   id: context
-
     - name: Get job context
       id: context
       uses: actions/github-script@v7
@@ -29,7 +25,6 @@ runs:
           const currentJobName = process.env.GITHUB_JOB;
           const currentJob = jobs.data.jobs.find(j => j.name === currentJobName);
 
-          core.setOutput("job_name", currentJob?.name);
           core.setOutput("job_html_url", currentJob?.html_url);
 
     - name: Post webhook for failure
@@ -41,10 +36,9 @@ runs:
         username: Github
         embed-color: 0xff0000
         embed-author-name: "[${{ github.repository }}]"
-        embed-author-url: ${{ github.server_url }}/${{ github.repository }}
+        embed-author-url: ${{ github.server_url }}/${{ github.repository }}/tree/${{ github.head_ref || github.ref_name }}
         embed-author-icon-url: https://em-content.zobj.net/source/twitter/408/face-with-tears-of-joy_1f602.png
-        embed-title: >
-          ${{ steps.context.outputs.job_name }} failed on ${{ github.head_ref || github.ref_name }} branch
+        embed-title: ${{ github.job }} failed on ${{ github.head_ref || github.ref_name }} branch
         embed-url: ${{ steps.context.outputs.job_html_url }}
         embed-description: "**Workflow**: ${{ github.workflow }}"
         embed-timestamp: ${{ github.event.head_commit.timestamp || github.run_started_at }}
