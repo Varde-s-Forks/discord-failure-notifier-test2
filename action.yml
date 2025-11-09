@@ -22,11 +22,11 @@ runs:
         avatar-url: https://github.githubassets.com/favicons/favicon.png
         username: Github
         embed-color: 0xff0000
-        embed-author-name: "${{ github.repository }}"
+        embed-author-name: "[${{ github.repository }}]"
         embed-author-url: ${{ github.server_url }}/${{ github.repository }}
         embed-author-icon-url: https://em-content.zobj.net/source/twitter/408/face-with-tears-of-joy_1f602.png
         embed-title: >
           ${{ steps.context.outputs.job_name }} failed on ${{ github.head_ref || github.ref_name }} branch
         embed-url: ${{ steps.context.outputs.job_html_url }}
-        embed-description: "**Workflow**: ${{ github.action }}"
+        embed-description: "**Workflow**: ${{ github.workflow }}"
         embed-timestamp: ${{ github.event.head_commit.timestamp || github.run_started_at }}
