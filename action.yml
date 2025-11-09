@@ -10,9 +10,27 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Get context
-      uses: qoomon/actions--context@v5
+    # - name: Get context
+    #   uses: qoomon/actions--context@v5
+    #   id: context
+
+    - name: Get job context
       id: context
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const run_id = context.runId;
+          const jobs = await github.rest.actions.listJobsForWorkflowRun({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            run_id,
+          });
+
+          const currentJobName = process.env.GITHUB_JOB;
+          const currentJob = jobs.data.jobs.find(j => j.name === currentJobName);
+
+          core.setOutput("job_name", currentJob?.name);
+          core.setOutput("job_html_url", currentJob?.html_url);
 
     - name: Post webhook for failure
       if: github.event.pull_request.head.repo.owner.login == github.event.pull_request.base.repo.owner.login
